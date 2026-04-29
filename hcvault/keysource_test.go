@@ -27,6 +27,8 @@ var (
 	// testVaultAddress is the HTTP/S address of the Vault server, it is set
 	// by TestMain after booting it.
 	testVaultAddress string
+	// Whether to skip all Docker-based tests.
+	testSkipDocker = false
 )
 
 // TestMain initializes a Vault server using Docker, writes the HTTP address to
@@ -34,6 +36,11 @@ var (
 // Vault Transit on the testEnginePath. It then runs all the tests, which can
 // make use of the various `test*` variables.
 func TestMain(m *testing.M) {
+	if testSkipDocker {
+		os.Exit(m.Run())
+		return
+	}
+
 	// Uses a sensible default on Windows (TCP/HTTP) and Linux/MacOS (socket)
 	pool, err := dockertest.NewPool("")
 	if err != nil {
@@ -179,6 +186,10 @@ func TestNewMasterKeyFromURI(t *testing.T) {
 }
 
 func TestMasterKey_Encrypt(t *testing.T) {
+	if testSkipDocker {
+		return
+	}
+
 	key := NewMasterKey(testVaultAddress, testEnginePath, "encrypt")
 	(Token(testVaultToken)).ApplyToMasterKey(key)
 	assert.NoError(t, createVaultKey(key))
@@ -207,6 +218,10 @@ func TestMasterKey_Encrypt(t *testing.T) {
 }
 
 func TestMasterKey_EncryptIfNeeded(t *testing.T) {
+	if testSkipDocker {
+		return
+	}
+
 	key := NewMasterKey(testVaultAddress, testEnginePath, "encrypt-if-needed")
 	(Token(testVaultToken)).ApplyToMasterKey(key)
 	assert.NoError(t, createVaultKey(key))
@@ -226,6 +241,10 @@ func TestMasterKey_EncryptedDataKey(t *testing.T) {
 }
 
 func TestMasterKey_Decrypt(t *testing.T) {
+	if testSkipDocker {
+		return
+	}
+
 	key := NewMasterKey(testVaultAddress, testEnginePath, "decrypt")
 	(Token(testVaultToken)).ApplyToMasterKey(key)
 	assert.NoError(t, createVaultKey(key))
@@ -254,6 +273,10 @@ func TestMasterKey_Decrypt(t *testing.T) {
 }
 
 func TestMasterKey_EncryptDecrypt_RoundTrip(t *testing.T) {
+	if testSkipDocker {
+		return
+	}
+
 	token := Token(testVaultToken)
 
 	encryptKey := NewMasterKey(testVaultAddress, testEnginePath, "roundtrip")
