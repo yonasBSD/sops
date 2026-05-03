@@ -46,6 +46,9 @@ func (al *allowList) Allows(address string) bool {
 	if al.All {
 		return true
 	}
+	if !strings.HasSuffix(address, "/") {
+		address = address + "/"
+	}
 	for _, uri := range al.URIs {
 		if strings.HasPrefix(address, uri) {
 			return true
